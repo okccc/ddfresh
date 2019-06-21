@@ -2,9 +2,10 @@ from django.shortcuts import render, redirect, reverse, HttpResponse
 from django.views.generic import View
 from .models import User
 import re
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer  # 加密用户身份信息生成激活token
 from django.conf import settings
 from celery_tasks.tasks import send_email_by_celery
+from django.contrib.auth import authenticate, login  # django内置认证系统和会话保持
 
 # Create your views here.
 
@@ -48,12 +49,13 @@ def register(request):
 
 # 类视图：dispatch方法会根据不同请求方式调用对应的处理方法
 class RegisterView(View):
-    """注册"""
+    """注册视图"""
     def get(self, request):
-        # 显示注册页面
+        """显示注册页面"""
         return render(request, "register.html")
 
     def post(self, request):
+        """注册校验"""
         # 1.接收form表单数据
         username = request.POST.get('user_name')
         password = request.POST.get('pwd')
@@ -118,7 +120,48 @@ class ActiveView(View):
 
 
 class LoginView(View):
-    """登录"""
+    """登录视图"""
     def get(self, request):
-        # 显示登录页面
-        return render(request, "login.html")
+        """显示登录页面"""
+        # 判断是否记住用户名
+        if "username" in request.COOKIES:
+            username = request.COOKIES.get('username')
+            checked = "checked"
+        else:
+            username, checked = "", ""
+        return render(request, "login.html", {"username": username, "checked": checked})
+
+    def post(self, request):
+        """登录校验"""
+        # 1.接收form表单数据
+        username = request.POST.get('username')
+        password = request.POST.get('pwd')
+        remember = request.POST.get('remember')
+        # print(username, password)
+
+        # 2.数据校验
+        # 检验数据完整性
+        if not all([username, password]):
+            return render(request, "login.html", {"errmsg": "数据不完整"})
+        # 校验用户名密码是否正确(用户认证)
+        user = authenticate(username=username, password=password)
+        # print(user)
+        if user:
+            # 用户名密码正确,记录用户登录状态(会话保持),会将session放入redis缓存(浏览器Cookie的sessionid就对应redis的key)
+            login(request, user)
+            # 登录成功,跳转到首页
+            response = redirect(reverse('goods:index'))
+            # 是否勾选了记住用户名
+            if remember == 'on':
+                # 勾选了就往浏览器添加cookie信息
+                response.set_cookie(key="username", value=username, max_age=7*24*3600)
+            else:
+                # 未勾选就删除cookie信息
+                response.delete_cookie(key="username")
+            # 返回应答
+            return response
+        else:
+            # 用户名或密码错误
+            return render(request, "login.html", {"errmsg": "用户名或密码错误"})
+
+

@@ -160,3 +160,17 @@ EMAIL_HOST_USER = 'grubbycc0412@163.com'
 EMAIL_HOST_PASSWORD = 'Cq224500821'
 # 收件人看到的发件人
 EMAIL_FROM = '激活邮件<grubbycc0412@163.com>'
+
+# 配置redis作为django的缓存,缓存是为了减轻数据库访问压力以及提高访问速度(比如网站首页每个人点击都是一样的,不需要反复查数据库,放到缓存就好)
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://:redis666@192.168.152.11:6379/2",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+# 将session放到缓存中,默认是存储在数据库的django_session表里
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
