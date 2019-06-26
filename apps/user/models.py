@@ -12,6 +12,21 @@ class User(AbstractUser, BaseModel):
         verbose_name_plural = verbose_name
 
 
+class AddressManager(models.Manager):
+    """地址模型管理器类"""
+    # 1.改变原有查询的结果集:all()
+    # 2.封装方法:用户操作模型类对应的数据表(增删改查)
+    def get_default_address(self, user):
+        """获取用户默认收货地址"""
+        # self.model:自动获取self对象所属的模型类,这样即使模型类改名字也没关系
+        try:
+            address = self.get(user=user, is_default=True)  # models.Manager
+        except self.model.DoesNotExist:
+            # 不存在默认收货地址
+            address = None
+        return address
+
+
 class Address(BaseModel):
     """地址模型类"""
     user = models.ForeignKey('User', verbose_name='所属账户')
@@ -25,3 +40,6 @@ class Address(BaseModel):
         db_table = 'df_address'
         verbose_name = '地址'
         verbose_name_plural = verbose_name
+
+    # 使用自定义管理器类
+    objects = AddressManager()
