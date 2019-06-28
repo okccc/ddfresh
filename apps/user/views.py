@@ -5,10 +5,10 @@ from apps.goods.models import GoodsSKU
 import re
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer  # 加密用户身份信息生成激活token
 from django.conf import settings
-from celery_tasks.tasks import send_email_by_celery
+from celery_tasks.tasks import send_email_by_celery  # 通过celery发送激活邮件
 from django.contrib.auth import authenticate, login, logout  # django内置认证系统和会话保持
 from utils.mixin import LoginRequiredMixin  # 类视图的登录装饰器
-from django_redis import get_redis_connection  #
+from django_redis import get_redis_connection
 # Create your views here.
 
 def register(request):
@@ -194,10 +194,10 @@ class UserInfoView(LoginRequiredMixin, View):
         address = Address.objects.get_default_address(user)
         # 连接redis
         conn = get_redis_connection('default')  # default是settings配置的CACHES
-        # 获取用户最新浏览的5个商品的id
+        # 遍历redis的list获取用户最新浏览的5个商品的id
         history_key = 'history_%d' % user.id
         sku_ids = conn.lrange(history_key, 0, 4)  # [2,3,1]
-        # 从数据库中查询用户浏览的商品的具体信息
+        # 再去数据库查询浏览商品的具体信息
         goods_list = []
         for sku_id in sku_ids:
             goods = GoodsSKU.objects.get(id=sku_id)
