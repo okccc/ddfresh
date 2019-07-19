@@ -19,11 +19,12 @@ from django.contrib import admin
 urlpatterns = [
     # project的admin页面 http://ip:port/admin
     url(r'^admin/', admin.site.urls),
-
+    url(r'^tinymce/', include('tinymce.urls')),  # 富文本编辑器
+    url(r'^search', include('haystack.urls')),  # 全文检索框架
     # 将app的urls添加到project的主urls,此处的namespace和视图函数的name可用作反向解析
-    url(r'^user/', include('apps.user.urls', namespace='user')),
-    url(r'^cart/', include('apps.cart.urls', namespace='cart')),
-    url(r'^order/', include('apps.order.urls', namespace='order')),
+    url(r'^user/', include('apps.user.urls', namespace='user')),  # 用户模块
+    url(r'^cart/', include('apps.cart.urls', namespace='cart')),  # 购物车模块
+    url(r'^order/', include('apps.order.urls', namespace='order')),  # 订单模块
     # 因为进首页就是商品模块,所以不用添加正则,放最后面
-    url(r'^', include('apps.goods.urls', namespace='goods')),
+    url(r'^', include('apps.goods.urls', namespace='goods')),  # 商品模块
 ]

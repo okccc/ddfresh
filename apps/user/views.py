@@ -50,6 +50,7 @@ def register(request):
         return redirect(reverse('goods:index'))
 
 # 类视图：dispatch方法会根据不同请求方式调用对应的处理方法
+# /user/register
 class RegisterView(View):
     """注册视图"""
     def get(self, request):
@@ -126,6 +127,7 @@ class ActiveView(View):
             return HttpResponse("激活链接已过期")
 
 
+# /user/login
 class LoginView(View):
     """登录视图"""
     def get(self, request):
@@ -174,6 +176,7 @@ class LoginView(View):
             return render(request, "login.html", {"errmsg": "用户名或密码错误"})
 
 
+# /user/logout
 class LogoutView(View):
     """退出"""
     def get(self, request):
@@ -183,9 +186,9 @@ class LogoutView(View):
         return redirect(reverse('goods:index'))
 
 
+# /user
 class UserInfoView(LoginRequiredMixin, View):
     """用户中心-信息页"""
-
     def get(self, request):
         # 获取登录用户,django会给request对象添加一个属性request.user
         user = request.user
@@ -208,6 +211,7 @@ class UserInfoView(LoginRequiredMixin, View):
         return render(request, 'user_center_info.html', context)
 
 
+# /user/order
 class UserOrderView(LoginRequiredMixin, View):
     """用户中心-订单页"""
     def get(self, request):
@@ -215,9 +219,9 @@ class UserOrderView(LoginRequiredMixin, View):
         return render(request, "user_center_order.html", {"page": "order"})
 
 
+# /user/address
 class AddressView(LoginRequiredMixin, View):
     """用户中心-地址页"""
-
     def get(self, request):
         # 获取登录用户
         user = request.user
